@@ -6,14 +6,8 @@ export async function GET(request: Request) {
   const code = searchParams.get("code")
 
   if (code) {
-    const supabase = await createClient() // ✅ MUST await
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (error) {
-      console.error("OAuth Error:", error.message)
-      return NextResponse.redirect(`${origin}/?error=auth`)
-    }
+    const supabase = await createClient()
+    await supabase.auth.exchangeCodeForSession(code)
   }
 
   return NextResponse.redirect(`${origin}/dashboard`)

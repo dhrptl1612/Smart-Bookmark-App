@@ -1,57 +1,30 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase-browser"
-import { Bookmark } from "@/types"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase-server"
 import BookmarkForm from "@/components/BookmarkForm"
 import BookmarkList from "@/components/BookmarkList"
 
-export default function Dashboard() {
-  const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
+export default async function Dashboard() {
+  const supabase = await createClient()
 
-  useEffect(() => {
-    const init = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
-      fetchBookmarks()
-    }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    init()
-  }, [])
-
-  const fetchBookmarks = async () => {
-    const { data } = await supabase
-      .from("bookmarks")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (data) setBookmarks(data)
-  }
-
-  // REALTIME
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime-bookmarks")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookmarks" },
-        () => fetchBookmarks()
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
-
-  if (!user) return null
+  if (!user) redirect("/")
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto py-10">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">My Bookmarks</h1>
+        <form action="/auth/logout" method="post">
+          <button className="bg-red-500 text-white px-4 py-2 rounded">
+            Logout
+          </button>
+        </form>
+      </div>
+
       <BookmarkForm user={user} />
-      <BookmarkList bookmarks={bookmarks} />
+      <BookmarkList user={user} />
     </div>
   )
 }

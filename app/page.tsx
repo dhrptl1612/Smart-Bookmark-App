@@ -15,10 +15,10 @@ export default function Home() {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-500 to-purple-600">
       <button
         onClick={login}
-        className="bg-black text-white px-6 py-3 rounded-lg"
+        className="bg-white text-black px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition"
       >
         Login with Google
       </button>
