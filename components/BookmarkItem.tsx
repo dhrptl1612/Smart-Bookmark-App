@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase-browser"
+import { createClient } from "@/lib/supabaseClient"
 
 export default function BookmarkItem({ bookmark }: any) {
   const supabase = createClient()
@@ -13,24 +13,16 @@ export default function BookmarkItem({ bookmark }: any) {
   }
 
   const updateUrl = async () => {
-  console.log("Updating:", bookmark.id)
+    const { error } = await supabase
+      .from("bookmarks")
+      .update({ url: newUrl })
+      .eq("id", bookmark.id)
 
-  const { error } = await supabase
-    .from("bookmarks")
-    .update({ url: newUrl })
-    .eq("id", bookmark.id)
-
-  if (error) {
-    console.error("Update error:", error)
-  } else {
-    console.log("Updated successfully")
-    setEdit(false)
+    if (!error) setEdit(false)
   }
-}
-
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow flex justify-between items-center">
+    <div className="bg-white p-4 rounded-xl shadow flex justify-between">
       <div>
         <p className="font-semibold">{bookmark.title}</p>
 
@@ -49,25 +41,16 @@ export default function BookmarkItem({ bookmark }: any) {
 
       <div className="space-x-3">
         {edit ? (
-          <button
-            onClick={updateUrl}
-            className="text-green-600"
-          >
+          <button onClick={updateUrl} className="text-green-600">
             Save
           </button>
         ) : (
-          <button
-            onClick={() => setEdit(true)}
-            className="text-blue-600"
-          >
+          <button onClick={() => setEdit(true)} className="text-blue-600">
             Edit
           </button>
         )}
 
-        <button
-          onClick={deleteBookmark}
-          className="text-red-500"
-        >
+        <button onClick={deleteBookmark} className="text-red-500">
           Delete
         </button>
       </div>

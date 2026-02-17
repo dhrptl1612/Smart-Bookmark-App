@@ -1,62 +1,68 @@
 "use client"
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabase-browser"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabaseClient"
 
-export default function BookmarkForm({ user }: any) {
+export default function BookmarkForm() {
   const supabase = createClient()
+
+  const [userId, setUserId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUserId(data.user?.id ?? null)
+      console.log("Loaded user:", data.user?.id)
+    }
+
+    loadUser()
+  }, [])
 
   const addBookmark = async () => {
-    if (!title || !url) return
-
-    // Check duplicate title
-    const { data } = await supabase
-      .from("bookmarks")
-      .select("id")
-      .eq("title", title)
-      .eq("user_id", user.id)
-
-    if (data && data.length > 0) {
-      setError("Title already exists!")
+    if (!userId) {
+      alert("Not logged in")
       return
     }
 
-    await supabase.from("bookmarks").insert([
-      {
-        title,
-        url,
-        user_id: user.id,
-      },
-    ])
+const { data, error } = await supabase
+  .from("bookmarks")
+  .insert([
+    {
+      title,
+      url,
+      user_id: userId,
+    },
+  ])
+  .select()
+console.log("Inserted row:", data)
 
-    setTitle("")
-    setUrl("")
-    setError("")
+    if (error) {
+      console.log("Insert error:", error)
+    } else {
+      setTitle("")
+      setUrl("")
+    }
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow mb-6">
+    <div className="card p-6 rounded-2xl shadow-md space-y-4 mb-6">
       <input
-        className="border p-3 w-full mb-3 rounded"
-        placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+        className="w-full border p-3 rounded-lg bg-transparent"
       />
       <input
-        className="border p-3 w-full mb-3 rounded"
-        placeholder="URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
+        placeholder="URL"
+        className="w-full border p-3 rounded-lg bg-transparent"
       />
-
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-
       <button
         onClick={addBookmark}
-        className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
+        className="w-full bg-indigo-600 text-white py-3 rounded-lg"
       >
         Add Bookmark
       </button>
